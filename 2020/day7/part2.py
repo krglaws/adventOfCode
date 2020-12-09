@@ -13,14 +13,14 @@ def load_input(path):
 
 def parse_bags(lines):
 
-  parent_map = dict()
+  bag_map = dict()
 
   for line in lines:
 
     parent, children = line.replace(' bags', '', 1).split(' contain ')
 
     if 'other' in children:
-      parent_map[parent] = []
+      bag_map[parent] = []
       continue
 
     for child in children.split(', '):
@@ -30,24 +30,35 @@ def parse_bags(lines):
       count = int(childls[0])
       color = ' '.join(childls[1:3])
 
-      if parent in parent_map.keys():
-        parent_map[parent].append((count, color))
+      if parent in bag_map.keys():
+        bag_map[parent].append((count, color))
       else:
-        parent_map[parent] = [(count, color)]
+        bag_map[parent] = [(count, color)]
 
-  return parent_map
+  return bag_map
 
 
-def count_bags_inside(color, parent_map):
+memo = dict()
 
-  return 1 + sum(count * count_bags_inside(child, parent_map) for count, child in parent_map[color])
+def count_bags_inside(color, bag_map):
+
+  if color in memo.keys():
+    return 1 + memo[color]
+
+  total = sum(count * count_bags_inside(child, bag_map) for count, child in bag_map[color])
+  memo[color] = total
+
+  return 1 + total
 
 
 if __name__ == '__main__':
 
   lines = load_input('./input.txt')
 
-  parent_map = parse_bags(lines)
+  start = time()
 
-  print count_bags_inside('shiny gold', parent_map) - 1
+  bag_map = parse_bags(lines)
+  print count_bags_inside('shiny gold', bag_map) - 1
+
+  print "Time = %fms" % (1000 * (time() - start))
 
